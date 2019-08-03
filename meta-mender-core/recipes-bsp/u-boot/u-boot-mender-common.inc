@@ -21,6 +21,7 @@ SRC_URI_append_mender-uboot = " file://0001-Add-missing-header-which-fails-on-re
 SRC_URI_append_mender-uboot = " file://0002-Generic-boot-code-for-Mender.patch"
 SRC_URI_append_mender-uboot = " file://0003-Integration-of-Mender-boot-code-into-U-Boot.patch"
 SRC_URI_append_mender-uboot = " file://0006-env-Kconfig-Add-descriptions-so-environment-options-.patch"
+SRC_URI_append_mender-uboot = " file://0007-Support-wrapper-scripts-for-fw_setenv.patch"
 
 SRC_URI_append_mender-uboot = "${@bb.utils.contains('MENDER_UBOOT_AUTO_CONFIGURE', \
                                                     '1', \

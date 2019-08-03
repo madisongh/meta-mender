@@ -1,6 +1,7 @@
 require u-boot-mender-common.inc
 
 FILES_${PN}_append_mender-uboot = " /data/u-boot/fw_env.config"
+RDEPENDS_${PN} += "bash"
 
 do_compile_append_mender-uboot() {
     alignment_bytes=${MENDER_PARTITION_ALIGNMENT}
@@ -23,12 +24,13 @@ do_install_append_mender-uboot() {
     install -d ${D}/data/u-boot
     install -m 0644 ${WORKDIR}/fw_env.config ${D}/data/u-boot/fw_env.config
     if [ ${MENDER_UBOOT_CONFIG_SYS_MMC_ENV_PART} != 0 ]; then
-        install -d ${D}${sysconfdir}/profile.d/
-        echo 'fw_setenv() {' > ${WORKDIR}/fw_unlock_mmc.sh
-        echo "      echo 0 > /sys/block/${MENDER_UBOOT_MMC_ENV_LINUX_DEVICE}/force_ro" >> ${WORKDIR}/fw_unlock_mmc.sh
-        echo '      /sbin/fw_setenv "$@"' >> ${WORKDIR}/fw_unlock_mmc.sh
-        echo "      echo 1 > /sys/block/${MENDER_UBOOT_MMC_ENV_LINUX_DEVICE}/force_ro" >> ${WORKDIR}/fw_unlock_mmc.sh
-        echo '}' >> ${WORKDIR}/fw_unlock_mmc.sh
-        install -m 0644 ${WORKDIR}/fw_unlock_mmc.sh ${D}${sysconfdir}/profile.d/fw_unlock_mmc.sh
+        echo '#!/bin/bash' > ${WORKDIR}/fw_unlock_mmc.sh
+        echo "echo 0 > /sys/block/${MENDER_UBOOT_MMC_ENV_LINUX_DEVICE}/force_ro" >> ${WORKDIR}/fw_unlock_mmc.sh
+        echo 'set -e' >> ${WORKDIR}/fw_unlock_mmc.sh
+        echo '/sbin/fw_setenv_nounlock "$@"' >> ${WORKDIR}/fw_unlock_mmc.sh
+        echo 'set +e' >> ${WORKDIR}/fw_unlock_mmc.sh
+        echo "echo 1 > /sys/block/${MENDER_UBOOT_MMC_ENV_LINUX_DEVICE}/force_ro" >> ${WORKDIR}/fw_unlock_mmc.sh
+        install -m 755 ${D}${base_sbindir}/fw_setenv ${D}${base_sbindir}/fw_setenv_nounlock
+        install -m 755 ${WORKDIR}/fw_unlock_mmc.sh ${D}${base_sbindir}/fw_setenv
     fi
 }
