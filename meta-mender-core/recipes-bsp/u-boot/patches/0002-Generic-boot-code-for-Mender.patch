@@ -1,24 +1,23 @@
-From c07ad477cd5715079a3bd086293e0adf91f15b88 Mon Sep 17 00:00:00 2001
-From: Drew Moseley <drew.moseley@northern.tech>
-Date: Sun, 28 Jan 2018 17:44:32 -0500
-Subject: [PATCH] Generic boot code for Mender.
+From b2b8da3c6b4ff8afd8628e28c6b6bdd37a7be490 Mon Sep 17 00:00:00 2001
+From: Dan Walkes <danwalkes@trellis-logic.com>
+Date: Fri, 2 Aug 2019 07:05:03 -0600
+Subject: [PATCH] Generic boot code for Mender
 
-Signed-off-by: Maciej Borzecki <maciej.borzecki@rndity.com>
-Signed-off-by: Drew Moseley <drew.moseley@northern.tech>
-Signed-off-by: Kristian Amlie <kristian.amlie@northern.tech>
+Minor changes from previous patch by Drew Moseley to allow specifying
+CONFIG_SYS_MMC_ENV_PART != 0
 ---
- include/config_mender.h |  98 +++++++++++++++++++++++++++++++
- include/env_mender.h    | 152 ++++++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 250 insertions(+)
+ include/config_mender.h |  94 +++++++++++++++++++++++++
+ include/env_mender.h    | 152 ++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 246 insertions(+)
  create mode 100644 include/config_mender.h
  create mode 100644 include/env_mender.h
 
 diff --git a/include/config_mender.h b/include/config_mender.h
 new file mode 100644
-index 0000000..3836a6d
+index 0000000000..69a526805d
 --- /dev/null
 +++ b/include/config_mender.h
-@@ -0,0 +1,98 @@
+@@ -0,0 +1,94 @@
 +/*
 +  Copyright 2017 Northern.tech AS
 +
@@ -96,11 +95,7 @@ index 0000000..3836a6d
 +# else
 +#  define CONFIG_SYS_MMC_ENV_DEV   MENDER_UBOOT_STORAGE_DEVICE
 +# endif
-+# ifdef CONFIG_SYS_MMC_ENV_PART
-+#  if CONFIG_SYS_MMC_ENV_PART != 0
-+#   error CONFIG_SYS_MMC_ENV_PART need to be set to 0. Make sure that: 1) All the instructions at docs.mender.io/devices/integrating-with-u-boot have been followed. 2) All required layers are included in bblayers.conf, including any board specific layers such as meta-mender-<board>
-+#  endif
-+# else
++# ifndef CONFIG_SYS_MMC_ENV_PART
 +   /* Use MMC partition zero to select whole user area of memory card. */
 +#  define CONFIG_SYS_MMC_ENV_PART  0
 +# endif
@@ -119,7 +114,7 @@ index 0000000..3836a6d
 +#endif /* HEADER_CONFIG_MENDER_H */
 diff --git a/include/env_mender.h b/include/env_mender.h
 new file mode 100644
-index 0000000..a1996ab
+index 0000000000..6fde590e5c
 --- /dev/null
 +++ b/include/env_mender.h
 @@ -0,0 +1,152 @@
@@ -275,6 +270,3 @@ index 0000000..a1996ab
 +#endif /* !MENDER_AUTO_PROBING */
 +
 +#endif /* HEADER_ENV_MENDER_H */
--- 
-2.7.4
-

@@ -138,6 +138,7 @@ do_provide_mender_defines() {
 #define MENDER_ROOTFS_PART_B_NUMBER_HEX $MENDER_ROOTFS_PART_B_NUMBER_HEX
 #define MENDER_UBOOT_STORAGE_INTERFACE "$MENDER_UBOOT_STORAGE_INTERFACE"
 #define MENDER_UBOOT_STORAGE_DEVICE $MENDER_UBOOT_STORAGE_DEVICE
+#define MENDER_UBOOT_CONFIG_SYS_MMC_ENV_PART ${MENDER_UBOOT_CONFIG_SYS_MMC_ENV_PART}
 
 /* BB variables. */
 #define MENDER_STORAGE_DEVICE "${MENDER_STORAGE_DEVICE}"
@@ -371,6 +372,22 @@ python() {
 # Helpers and internal variables.
 ################################################################################
 
+def mender_get_uboot_env_mmc_linux_device(d):
+    # Convert u-boot partition numbers to linux device references
+    # See [CONFIG_SYS_MMC_ENV_PART](https://github.com/u-boot/u-boot/blob/u-boot-2016.09.y/README#L4390) and
+    # [linux kernel mmc-dev-parts documentation](https://www.kernel.org/doc/Documentation/mmc/mmc-dev-parts.txt)
+    storage_device=d.getVar("MENDER_STORAGE_DEVICE",True)
+    env_part=d.getVar("MENDER_UBOOT_CONFIG_SYS_MMC_ENV_PART",True)
+    env_part_append=""
+    if env_part == "1":
+        env_part_append="boot0"
+    elif env_part == "2":
+        env_part_append="boot1"
+    return storage_device.replace("/dev/","",1) + env_part_append
+
+# The device portion of the uboot environment path (IE mmcblk0boot1 or mmcblk0)
+MENDER_UBOOT_MMC_ENV_LINUX_DEVICE ?= "${@mender_get_uboot_env_mmc_linux_device(d)}"
+
 mender_create_fw_env_config_file() {
     # Takes one argument, which is the file to put it in.
 
@@ -379,18 +396,10 @@ mender_create_fw_env_config_file() {
     # fw-utils seem to only be able to handle hex values.
     HEX_BOOTENV_SIZE="$(printf 0x%x "${BOOTENV_SIZE}")"
 
-    # Convert u-boot partition numbers to linux device references
-    # See [CONFIG_SYS_MMC_ENV_PART](https://github.com/u-boot/u-boot/blob/u-boot-2016.09.y/README#L4390) and
-    # [linux kernel mmc-dev-parts documentation](https://www.kernel.org/doc/Documentation/mmc/mmc-dev-parts.txt)
-    if [ ${MENDER_UBOOT_CONFIG_SYS_ENV_PART} = "1" ]; then
-        MENDER_UBOOT_ENV_PART_LINUX_APPEND="boot0"
-    elif [ ${MENDER_UBOOT_CONFIG_SYS_ENV_PART} = "2" ]; then
-        MENDER_UBOOT_ENV_PART_LINUX_APPEND="boot1"
-    fi
     # create fw_env.config file
     cat > $1 <<EOF
-${MENDER_STORAGE_DEVICE}${MENDER_UBOOT_ENV_PART_LINUX_APPEND} ${MENDER_UBOOT_ENV_STORAGE_DEVICE_OFFSET_1} $HEX_BOOTENV_SIZE
-${MENDER_STORAGE_DEVICE}${MENDER_UBOOT_ENV_PART_LINUX_APPEND} ${MENDER_UBOOT_ENV_STORAGE_DEVICE_OFFSET_2} $HEX_BOOTENV_SIZE
+/dev/${MENDER_UBOOT_MMC_ENV_LINUX_DEVICE} ${MENDER_UBOOT_ENV_STORAGE_DEVICE_OFFSET_1} $HEX_BOOTENV_SIZE
+/dev/${MENDER_UBOOT_MMC_ENV_LINUX_DEVICE} ${MENDER_UBOOT_ENV_STORAGE_DEVICE_OFFSET_2} $HEX_BOOTENV_SIZE
 EOF
 }
 
