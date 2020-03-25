@@ -3,6 +3,8 @@
 
 DEPENDS = "mender-artifact-native e2fsprogs-native util-linux-native mtools-native swig-native"
 
+export MENDER_MACHINE
+
 LICENSE = "Apache-2.0"
 
 do_compile() {
