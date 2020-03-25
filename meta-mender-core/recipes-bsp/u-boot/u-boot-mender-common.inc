@@ -7,6 +7,7 @@ BOOTENV_SIZE[doc] = "Size of bootloader environment"
 
 DEPLOYDIR = "${WORKDIR}/deploy-${PN}"
 
+export MENDER_MACHINE
 MENDER_UBOOT_AUTO_CONFIGURE ??= "${@bb.utils.contains('DISTRO_FEATURES', 'mender-uboot', '1', '0', d)}"
 
 MENDER_UBOOT_CONFIG_SYS_MMC_ENV_PART ??= "0"
