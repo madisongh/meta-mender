@@ -1,6 +1,7 @@
 inherit mender-helpers
 require conf/image-uefi.conf
 inherit ${@bb.utils.contains('DISTRO_FEATURES', 'efi-secure-boot', 'user-key-store', '', d)}
+inherit grub-mender-grubenv
 
 RPROVIDES_${PN} += "virtual/grub-bootconf"
 
@@ -62,7 +63,6 @@ mender_rootfsa_part=$mender_rootfsa_part
 mender_rootfsb_part=$mender_rootfsb_part
 mender_kernel_root_base=${MENDER_STORAGE_DEVICE_BASE}
 kernel_imagetype=${KERNEL_IMAGETYPE}
-regexp (.*),(.*) \$root -s mender_grub_storage_device
 EOF
 
     if ${@bb.utils.contains('DISTRO_FEATURES', 'mender-partuuid', 'true', 'false', d)}; then
@@ -71,13 +71,6 @@ EOF
         cat >> ${B}/mender_grubenv_defines <<EOF
 mender_rootfsa_uuid=$mender_rootfsa_uuid
 mender_rootfsb_uuid=$mender_rootfsb_uuid
-EOF
-    fi
-
-    if [ -n "${KERNEL_DEVICETREE}" ]; then
-        MENDER_DTB_NAME=$(mender_get_clean_kernel_devicetree)
-        cat >> ${B}/mender_grubenv_defines <<EOF
-kernel_devicetree=$MENDER_DTB_NAME
 EOF
     fi
 }
