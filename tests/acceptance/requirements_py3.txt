@@ -4,7 +4,7 @@ pytest-html==3.1.1
 paramiko==2.7.2
 python-lzo==1.12
 ubi-reader==0.7.0
-filelock==3.0.12
+filelock==3.9.0
 psutil==5.8.0
 pycrypto==2.6.1
 requests==2.25.1
